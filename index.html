@@ -505,6 +505,7 @@ tr.row-rouge td:first-child { box-shadow: inset 4px 0 var(--bad); }
   }
   function startLocal() {
     const db = localDb(); S.db = db; S.canWrite = true;
+    $(".sub").textContent = "Dix indicateurs, leurs seuils d'alerte et le suivi des dix actions du programme. Dans cette version, chaque modification est enregistrée dans votre navigateur.";
     const n = $("#notice"); n.hidden = false;
     const msg = el("span", { text: "Version autonome : vos saisies sont enregistrées dans ce navigateur uniquement, personne d'autre ne les voit. Pour un tableau partagé en direct, utilisez la version sur claude.ai. " });
     const box = el("span", { class: "confirm" });
