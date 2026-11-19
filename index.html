@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Tableau de bord Cap Solidaire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout : bandeau d'en-tête, synthèse en tuiles, puis trois onglets de tables éditables (indicateurs, établissements, actions). */
+:root {
+  --bg: #F6F8F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF4F4;
+  --line: #D8E2E2;
+  --fg: #1E2A2B;
+  --muted: #546566;
+  --teal: #1D5B63;
+  --teal-soft: #E3EFEF;
+  --coral: #B4472F;
+  --coral-soft: #FBE9E4;
+  --ok: #2E7D4F; --ok-soft: #E3F2E8;
+  --warn: #8F5600; --warn-soft: #FFF1DB;
+  --bad: #B23B22; --bad-soft: #FBE4DE;
+  --none: #7F8E8F; --none-soft: #EDF0F0;
+  --focus: #2B7FA0;
+  --f-display: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A1B; --surface: #172324; --surface-2: #1D2C2D; --line: #2C3D3E;
+    --fg: #E4ECEC; --muted: #9AAEAF; --teal: #7CC3CB; --teal-soft: #1F3A3D;
+    --coral: #F08A70; --coral-soft: #3A2520;
+    --ok: #6CCB92; --ok-soft: #1C3426; --warn: #F0B04F; --warn-soft: #3A2D16;
+    --bad: #F0826A; --bad-soft: #3D2019; --none: #8FA0A1; --none-soft: #233132;
+    --focus: #7CC3CB; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A1B; --surface: #172324; --surface-2: #1D2C2D; --line: #2C3D3E;
+  --fg: #E4ECEC; --muted: #9AAEAF; --teal: #7CC3CB; --teal-soft: #1F3A3D;
+  --coral: #F08A70; --coral-soft: #3A2520;
+  --ok: #6CCB92; --ok-soft: #1C3426; --warn: #F0B04F; --warn-soft: #3A2D16;
+  --bad: #F0826A; --bad-soft: #3D2019; --none: #8FA0A1; --none-soft: #233132;
+  --focus: #7CC3CB; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+header.top { background: var(--teal); color: #fff; }
+:root:not([data-theme="light"]) header.top { }
+header.top .wrap { padding-block: 22px 20px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; }
+.eyebrow { font-family: var(--f-display); font-weight: 700; font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: #F6C9BC; margin: 0 0 4px; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.1; margin: 0; text-wrap: balance; color: #fff; }
+.sub { margin: 6px 0 0; color: #D3E6E7; font-size: 14px; max-width: 70ch; }
+.who { font-size: 13px; color: #D3E6E7; display: flex; align-items: center; gap: 8px; }
+.who img { width: 26px; height: 26px; border-radius: 50%; }
+.pill-ro { background: rgba(255,255,255,.16); border-radius: 999px; padding: 4px 12px; font-size: 12px; }
+
+.notice { margin-top: 16px; padding: 10px 14px; border-radius: 8px; background: var(--warn-soft); color: var(--fg); border: 1px solid var(--line); font-size: 14px; }
+.notice[hidden] { display: none; }
+
+/* Synthèse */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 20px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.tile h2 { font-family: var(--f-display); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--none-soft); }
+.bar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend b { color: var(--fg); font-weight: 600; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.big { font-family: var(--f-display); font-weight: 800; font-size: 30px; line-height: 1; color: var(--teal); font-variant-numeric: tabular-nums; }
+.tile p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
+/* Onglets */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 26px; border-bottom: 1px solid var(--line); }
+.tab { appearance: none; border: 0; background: none; font: 600 15px var(--f-display); color: var(--muted); padding: 10px 14px; border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--teal); border-bottom-color: var(--coral); }
+.tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.panel { margin-top: 18px; }
+.panel-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.panel-head h2 { font-family: var(--f-display); font-size: 20px; margin: 0; color: var(--fg); }
+.panel-head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; max-width: 80ch; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--fg); font: 600 13px var(--f-body); padding: 7px 12px; border-radius: 7px; cursor: pointer; }
+.btn:hover { border-color: var(--teal); color: var(--teal); }
+.btn.primary { background: var(--teal); border-color: var(--teal); color: var(--surface); }
+.btn.danger { color: var(--bad); }
+.btn[disabled] { opacity: .5; cursor: default; }
+
+.scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+thead th { background: var(--surface-2); font: 700 12px var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); position: sticky; top: 0; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; }
+.n { font-family: var(--f-display); font-weight: 800; color: var(--coral); width: 34px; }
+.ind-name { font-family: var(--f-display); font-weight: 700; color: var(--teal); min-width: 170px; }
+.fam { display: inline-block; margin-top: 4px; font: 600 11px var(--f-body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.meta { font-size: 12.5px; color: var(--muted); min-width: 190px; max-width: 280px; }
+.meta b { color: var(--fg); font-weight: 600; }
+.val { width: 84px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: 500 14px var(--f-body); font-variant-numeric: tabular-nums; text-align: right; }
+.val:disabled, .txt:disabled, select:disabled, textarea:disabled { background: transparent; border-color: transparent; color: var(--fg); opacity: 1; }
+.unit { font-size: 12px; color: var(--muted); margin-left: 3px; }
+.txt { width: 100%; min-width: 130px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: 400 14px var(--f-body); }
+textarea.txt { min-height: 38px; resize: vertical; min-width: 180px; }
+select.st { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); font: 600 13px var(--f-body); background: var(--none-soft); color: var(--muted); }
+select.st[data-v="vert"] { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+select.st[data-v="orange"] { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+select.st[data-v="rouge"] { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+select.av { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); font: 600 13px var(--f-body); background: var(--none-soft); color: var(--muted); }
+select.av[data-v="En cours"] { background: var(--teal-soft); color: var(--teal); border-color: transparent; }
+select.av[data-v="Fait"] { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+select.av[data-v="Suspendu"] { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.trend { font-weight: 700; font-size: 16px; }
+.trend.good { color: var(--ok); } .trend.bad { color: var(--bad); } .trend.flat { color: var(--muted); }
+.stamp { display: block; margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+.saving { color: var(--teal); }
+.err { color: var(--bad); }
+tr.row-vert td:first-child { box-shadow: inset 4px 0 var(--ok); }
+tr.row-orange td:first-child { box-shadow: inset 4px 0 var(--warn); }
+tr.row-rouge td:first-child { box-shadow: inset 4px 0 var(--bad); }
+.empty { padding: 28px 18px; text-align: center; color: var(--muted); }
+.foot { margin-top: 26px; font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 90ch; }
+.foot b { color: var(--fg); }
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 8px; font-size: 14px; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; pointer-events: none; }
+.toast.show { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+@media (max-width: 640px) { .meta { min-width: 150px; } th, td { padding: 8px; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Cap Solidaire · Conseil d'administration · exemple fictif</p>
+      <h1>Tableau de bord attractivité et fidélisation</h1>
+      <p class="sub">Dix indicateurs, leurs seuils d'alerte et le suivi des dix actions du programme. Chaque modification est enregistrée et visible aussitôt par toutes les personnes qui ont la page ouverte.</p>
+    </div>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notice" id="notice" hidden></div>
+
+  <section class="summary" aria-label="Synthèse">
+    <div class="tile">
+      <h2>Indicateurs par statut</h2>
+      <div class="bar" id="barInd"></div>
+      <div class="legend" id="legInd"></div>
+    </div>
+    <div class="tile">
+      <h2>Avancement des actions</h2>
+      <div class="bar" id="barAct"></div>
+      <div class="legend" id="legAct"></div>
+    </div>
+    <div class="tile">
+      <h2>Période en cours</h2>
+      <div class="big" id="perCur">…</div>
+      <p id="perFill">Chargement des données…</p>
+    </div>
+    <div class="tile">
+      <h2>Dernière mise à jour</h2>
+      <div class="big" id="lastUp" style="font-size:22px">…</div>
+      <p id="lastWho"></p>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Rubriques">
+    <button class="tab" role="tab" id="tab-indicateurs" aria-controls="p-indicateurs" aria-selected="true">Indicateurs</button>
+    <button class="tab" role="tab" id="tab-etablissements" aria-controls="p-etablissements" aria-selected="false">Par établissement</button>
+    <button class="tab" role="tab" id="tab-actions" aria-controls="p-actions" aria-selected="false">Suivi des actions</button>
+  </nav>
+
+  <section class="panel" id="p-indicateurs" role="tabpanel" aria-labelledby="tab-indicateurs">
+    <div class="panel-head">
+      <div>
+        <h2>Les dix indicateurs suivis par le conseil</h2>
+        <p>Saisissez la valeur de chaque période, puis choisissez le statut au regard du seuil d'alerte. La flèche compare les deux dernières valeurs saisies : verte si la situation s'améliore, rouge si elle se dégrade.</p>
+      </div>
+      <div class="tools">
+        <button class="btn" id="addPer" type="button">Ajouter une période</button>
+        <button class="btn" id="csvInd" type="button">Copier en CSV</button>
+      </div>
+    </div>
+    <div class="scroll"><table id="tInd"><thead></thead><tbody><tr><td class="empty">Chargement des indicateurs…</td></tr></tbody></table></div>
+  </section>
+
+  <section class="panel" id="p-etablissements" role="tabpanel" aria-labelledby="tab-etablissements" hidden>
+    <div class="panel-head">
+      <div>
+        <h2>Vue par établissement</h2>
+        <p>Valeurs de la période en cours. Une moyenne sur 300 salarié·es peut cacher un service à 10 % de rotation et un autre à 60 % : on lit toujours le détail.</p>
+      </div>
+      <div class="tools">
+        <button class="btn" id="addEtab" type="button">Ajouter un établissement</button>
+        <button class="btn" id="csvEtab" type="button">Copier en CSV</button>
+      </div>
+    </div>
+    <div class="scroll"><table id="tEtab"><thead></thead><tbody><tr><td class="empty">Chargement des établissements…</td></tr></tbody></table></div>
+  </section>
+
+  <section class="panel" id="p-actions" role="tabpanel" aria-labelledby="tab-actions" hidden>
+    <div class="panel-head">
+      <div>
+        <h2>Suivi des dix actions du programme</h2>
+        <p>Avancement à mettre à jour avant chaque séance du conseil.</p>
+      </div>
+      <div class="tools"><button class="btn" id="csvAct" type="button">Copier en CSV</button></div>
+    </div>
+    <div class="scroll"><table id="tAct"><thead></thead><tbody><tr><td class="empty">Chargement des actions…</td></tr></tbody></table></div>
+  </section>
+
+  <div class="foot">
+    <div><b>Règles de lecture.</b> Les seuils d'alerte sont des règles de détection proposées au conseil, pas des normes : la première année établit l'état initial, puis on les recalibre. Les scores de soutien managérial servent à repérer les unités qui ont besoin d'un diagnostic, jamais à classer les cadres. Chaque indicateur se lit avec la qualité des accompagnements.</div>
+    <div><b>Sources.</b> Repères nationaux : CNSA, Repères statistiques n° 24, données 2023. Indicateurs et seuils tirés des recherches approfondies de novembre 2026. Association fictive : document d'exemple pour la formation IRFASE.</div>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="seed">{"config": {"general": {"periodes": ["T0 2026", "S1 2027", "S2 2027"], "courante": "T0 2026"}}, "indicateurs": {"ind01": {"ordre": 1, "famille": "Résultats RH", "nom": "Taux de rotation du personnel", "definition": "(Entrées + sorties) / 2 / effectif moyen × 100, méthode TDBMS ; distinguer CDI et CDD.", "frequence": "trimestriel, glissant 12 mois", "repere": "24,4 % (tous ESMS, 2023)", "seuil": "Hausse > 20 % relative sur 12 mois, ou écart durable au repère de la catégorie", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind02": {"ordre": 2, "famille": "Résultats RH", "nom": "Taux de vacance de postes", "definition": "ETP budgétés non pourvus / ETP budgétés × 100 ; citer les 3 métiers les plus touchés.", "frequence": "trimestriel", "repere": "4,5 % (tous ESMS, 2023)", "seuil": "Au-dessus du repère deux trimestres de suite, ou hausse continue", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind03": {"ordre": 3, "famille": "Résultats RH", "nom": "Taux d'absentéisme", "definition": "Jours calendaires d'absence / (ETP réels × 365) × 100 ; séparer maladie, AT-MP, maternité.", "frequence": "trimestriel, glissant", "repere": "11,5 % (tous ESMS, 2023)", "seuil": "Dérive par rapport à N-1 et à un établissement comparable", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind04": {"ordre": 4, "famille": "Résultats RH", "nom": "Absentéisme court", "definition": "Jours d'absence de moins de 6 jours / jours théoriques travaillés.", "frequence": "trimestriel", "repere": "", "seuil": "Hausse > 20 % sur quatre trimestres, ou concentration dans un collectif", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind05": {"ordre": 5, "famille": "Résultats RH", "nom": "Fidélisation à 12 mois des recrues", "definition": "Recrues toujours présentes 12 mois après / recrutements de la période × 100.", "frequence": "semestriel", "repere": "", "seuil": "Baisse > 10 points par rapport aux 3 années précédentes, ou écart > 15 points entre établissements", "unite": "%", "sens": "baisse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind06": {"ordre": 6, "famille": "Résultats RH", "nom": "Départs volontaires en CDI", "definition": "Démissions + ruptures conventionnelles à l'initiative du salarié / effectif CDI moyen.", "frequence": "trimestriel, glissant", "repere": "", "seuil": "Hausse > 20 % sur un an, ou concentration dans un service ou un métier", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind07": {"ordre": 7, "famille": "Signaux précoces", "nom": "Intention de quitter à 12 mois", "definition": "Question anonyme : « Envisagez-vous sérieusement de quitter l'association dans les 12 prochains mois ? » % de oui.", "frequence": "semestriel", "repere": "", "seuil": "+ 5 points depuis la mesure précédente, ou écart > 10 points entre unités", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind08": {"ordre": 8, "famille": "Signaux précoces", "nom": "Autonomie et qualité du travail", "definition": "Moyenne de deux items notés de 0 à 10 : latitude pour organiser son travail ; possibilité de faire un travail de qualité.", "frequence": "semestriel", "repere": "", "seuil": "Baisse ≥ 1 point, ou plus de 30 % de notes ≤ 5 dans une unité", "unite": "/10", "sens": "baisse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind09": {"ordre": 9, "famille": "Signaux précoces", "nom": "Soutien du manager et du collectif", "definition": "Moyenne de deux items de 0 à 10 : mon responsable m'aide à résoudre les difficultés ; dans l'équipe, on peut s'entraider et parler des problèmes.", "frequence": "semestriel", "repere": "", "seuil": "Baisse ≥ 1 point, écart > 1,5 point entre équipes, ou > 30 % de notes ≤ 5", "unite": "/10", "sens": "baisse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}, "ind10": {"ordre": 10, "famille": "Signaux précoces", "nom": "Charge administrative perçue", "definition": "% de professionnel·les dont la saisie et le reporting empêchent « souvent » ou « très souvent » le cœur de métier.", "frequence": "semestriel", "repere": "", "seuil": "Plus de 30 %, ou hausse > 10 points dans une unité", "unite": "%", "sens": "hausse_degrade", "valeurs": {}, "statut": "", "commentaire": ""}}, "etablissements": {"e1": {"ordre": 1, "nom": "Établissement 1", "consolide": false, "valeurs": {}, "metiers": "", "statut": ""}, "e2": {"ordre": 2, "nom": "Établissement 2", "consolide": false, "valeurs": {}, "metiers": "", "statut": ""}, "e3": {"ordre": 3, "nom": "Établissement 3", "consolide": false, "valeurs": {}, "metiers": "", "statut": ""}, "e4": {"ordre": 4, "nom": "Établissement 4", "consolide": false, "valeurs": {}, "metiers": "", "statut": ""}, "e5": {"ordre": 5, "nom": "Établissement 5", "consolide": false, "valeurs": {}, "metiers": "", "statut": ""}, "zz-asso": {"ordre": 99, "nom": "Association (consolidé)", "consolide": true, "valeurs": {}, "metiers": "", "statut": ""}}, "actions": {"a01": {"ordre": 1, "nom": "Tableau de bord attractivité et fidélisation", "pilote": "DRH et directions", "echeance": "M3", "indicateur": "Tableau mensuel en place ; état initial 2026", "avancement": "À lancer", "commentaire": ""}, "a02": {"ordre": 2, "nom": "Parcours d'intégration de 90 jours avec tuteur", "pilote": "DRH et cadres", "echeance": "M4", "indicateur": "Départs à 3, 6 et 12 mois ; satisfaction J30 et J90", "avancement": "À lancer", "commentaire": ""}, "a03": {"ordre": 3, "nom": "Pacte écoles avec 3 à 5 instituts", "pilote": "RH recrutement et ambassadeurs", "echeance": "M6", "indicateur": "Stagiaires, alternants, conversion en embauche", "avancement": "À lancer", "commentaire": ""}, "a04": {"ordre": 4, "nom": "Cooptation pilotée et évaluée", "pilote": "DRH", "echeance": "M2", "indicateur": "Embauches ; maintien à 6 et 12 mois ; coût par embauche", "avancement": "À lancer", "commentaire": ""}, "a05": {"ordre": 5, "nom": "Parcours internes visibles", "pilote": "DRH formation et DG", "echeance": "M6", "indicateur": "% de postes pourvus en interne ; promotions", "avancement": "À lancer", "commentaire": ""}, "a06": {"ordre": 6, "nom": "Planning participatif dans deux établissements", "pilote": "Directions, cadres, équipes", "echeance": "M9", "indicateur": "Modifications tardives ; heures supplémentaires ; satisfaction", "avancement": "À lancer", "commentaire": ""}, "a07": {"ordre": 7, "nom": "Socle de management de proximité", "pilote": "DG et DRH", "echeance": "M12", "indicateur": "Baromètre soutien ; rotation par équipe ; absentéisme", "avancement": "À lancer", "commentaire": ""}, "a08": {"ordre": 8, "nom": "Analyse des pratiques dans les unités exposées", "pilote": "Directions d'établissement", "echeance": "M4", "indicateur": "Participation ; soutien perçu ; épuisement ; incidents", "avancement": "À lancer", "commentaire": ""}, "a09": {"ordre": 9, "nom": "Pilote d'équipe autonome (1 ou 2 unités)", "pilote": "DG, directions, cadre pilote", "echeance": "M18", "indicateur": "Absentéisme ; démissions ; décisions prises par l'équipe", "avancement": "À lancer", "commentaire": ""}, "a10": {"ordre": 10, "nom": "Freins périphériques et usure", "pilote": "DRH et QVCT", "echeance": "M18", "indicateur": "Refus d'embauche liés au transport ou au logement ; AT-MP", "avancement": "À lancer", "commentaire": ""}}}</script>
+<script>
+(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return n;
+  };
+
+  const S = { db: null, user: null, myId: null, canWrite: true, ind: null, etab: null, act: null, cfg: null, names: {} };
+  const STATUTS = [["", "Non renseigné"], ["vert", "Vert"], ["orange", "Orange"], ["rouge", "Rouge"]];
+  const AVANC = ["À lancer", "En cours", "Fait", "Suspendu"];
+  const COLS_ETAB = [["rotation", "Rotation", "%"], ["vacance", "Vacance", "%"], ["absenteisme", "Absentéisme", "%"], ["abs_court", "Abs. court", "%"], ["fidelisation", "Fidélisation 12 mois", "%"], ["departs", "Départs vol. CDI", "%"], ["intention", "Intention de quitter", "%"]];
+
+  /* ---------- utilitaires ---------- */
+  const fmt = (v) => (v == null || v === "" || Number.isNaN(v)) ? "" : String(v).replace(".", ",");
+  const parse = (s) => { s = String(s).trim().replace(/\s/g, "").replace(",", "."); if (s === "") return null; const n = Number(s); return Number.isFinite(n) ? n : NaN; };
+  const dateFr = (iso) => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return ""; } };
+  const dateHeureFr = (iso) => { try { const d = new Date(iso); return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) + " à " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
+  let toastT;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200); }
+  function notice(msg) { const n = $("#notice"); if (!msg) { n.hidden = true; return; } n.textContent = msg; n.hidden = false; }
+  const periodes = () => (S.cfg && Array.isArray(S.cfg.periodes) && S.cfg.periodes.length) ? S.cfg.periodes : [];
+  const perCourante = () => (S.cfg && S.cfg.courante) || periodes()[periodes().length - 1] || null;
+
+  /* une écriture à la fois par document */
+  const queues = {};
+  function write(path, data, label) {
+    if (!S.db || !S.canWrite) return Promise.resolve();
+    const stamp = { majPar: S.myId || null, majLe: new Date().toISOString() };
+    const body = Object.assign({}, data, stamp);
+    const prev = queues[path] || Promise.resolve();
+    const next = prev.catch(() => {}).then(() => S.db.doc(path).update(body)).then(() => { toast(label || "Enregistré"); }, (e) => {
+      if (e && e.code === "invalid_argument") { S.canWrite = false; renderAll(); notice("Vos droits sur cette page ne permettent pas de modifier le tableau de bord : il s'affiche en lecture seule."); }
+      else if (e && e.code === "quota_exceeded") { toast("Enregistrement impossible : la base de la page est pleine."); }
+      else { toast("Enregistrement impossible pour le moment. Réessayez dans un instant."); }
+      throw e;
+    });
+    queues[path] = next;
+    return next;
+  }
+
+  async function names(ids) {
+    ids = [...new Set(ids.filter(Boolean))];
+    if (!S.user || !ids.length) return;
+    try { const ps = await S.user.profiles(ids); for (const id of ids) S.names[id] = (ps[id] && ps[id].name) || ""; } catch (e) {}
+  }
+  const nameOf = (id) => (id && S.names[id]) || (id && id === S.myId ? "vous" : "un membre");
+
+  /* rendu différé si un champ de la section a le focus */
+  const pending = new Set();
+  function safeRender(sectionId, fn) {
+    const sec = document.getElementById(sectionId);
+    const a = document.activeElement;
+    if (sec && a && sec.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) { pending.add(fn); return; }
+    fn();
+  }
+  document.addEventListener("focusout", () => setTimeout(() => {
+    const a = document.activeElement;
+    if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return;
+    const fns = [...pending]; pending.clear(); fns.forEach((f) => f());
+  }, 0));
+
+  /* ---------- indicateurs ---------- */
+  function trend(d) {
+    const ps = periodes(); const vals = ps.map((p) => d.valeurs && d.valeurs[p]).filter((v) => typeof v === "number");
+    if (vals.length < 2) return null;
+    const a = vals[vals.length - 2], b = vals[vals.length - 1];
+    if (b === a) return { sym: "→", cls: "flat", label: "stable" };
+    const up = b > a; const worse = d.sens === "baisse_degrade" ? !up : up;
+    return { sym: up ? "↑" : "↓", cls: worse ? "bad" : "good", label: worse ? "se dégrade" : "s'améliore" };
+  }
+
+  function renderInd() {
+    const t = $("#tInd"), ps = periodes();
+    const head = el("tr", null, el("th", { text: "N°" }), el("th", { text: "Indicateur" }), el("th", { text: "Repère et seuil d'alerte" }),
+      ps.map((p) => el("th", { text: p })), el("th", { text: "Tendance" }), el("th", { text: "Statut" }), el("th", { text: "Commentaire" }));
+    t.tHead.replaceChildren(head);
+    const tb = t.tBodies[0];
+    if (!S.ind) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: 7 + ps.length, text: "Chargement des indicateurs…" }))); return; }
+    if (!S.ind.length) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: 7 + ps.length, text: "Aucun indicateur pour l'instant. Le tableau de bord sera initialisé avec les dix indicateurs proposés au conseil." }))); return; }
+    const ro = !S.canWrite;
+    tb.replaceChildren(...S.ind.map((snap) => {
+      const d = snap.data(), id = snap.id, path = "indicateurs/" + id, tr = trend(d);
+      const cells = ps.map((p) => {
+        const v = d.valeurs ? d.valeurs[p] : null;
+        const inp = el("input", { class: "val", id: "v-" + id + "-" + p.replace(/\W+/g, "_"), type: "text", inputmode: "decimal", value: fmt(v), "aria-label": d.nom + ", " + p, disabled: ro,
+          onchange: (e) => { const n = parse(e.target.value); if (Number.isNaN(n)) { e.target.value = fmt(v); toast("Saisissez un nombre, par exemple 24,4"); return; }
+            if (n === (v == null ? null : v)) return; write(path, { valeurs: { [p]: n } }, d.nom + " · " + p + " enregistré"); } });
+        return el("td", { class: "num" }, inp, el("span", { class: "unit", text: d.unite || "" }));
+      });
+      const st = el("select", { class: "st", id: "s-" + id, "data-v": d.statut || "", "aria-label": "Statut de " + d.nom, disabled: ro,
+        onchange: (e) => { e.target.dataset.v = e.target.value; write(path, { statut: e.target.value }, "Statut mis à jour"); } },
+        STATUTS.map(([v, l]) => el("option", { value: v, selected: (d.statut || "") === v, text: l })));
+      const com = el("textarea", { class: "txt", id: "c-" + id, rows: 1, "aria-label": "Commentaire sur " + d.nom, disabled: ro,
+        onchange: (e) => { if (e.target.value !== (d.commentaire || "")) write(path, { commentaire: e.target.value }, "Commentaire enregistré"); } });
+      com.value = d.commentaire || "";
+      return el("tr", { class: d.statut ? "row-" + d.statut : null },
+        el("td", { class: "n", text: d.ordre }),
+        el("td", { class: "ind-name" }, d.nom, el("br"), el("span", { class: "fam", text: d.famille }), el("span", { class: "stamp", text: d.frequence ? "Fréquence : " + d.frequence : "" })),
+        el("td", { class: "meta" }, el("div", null, el("b", { text: "Repère : " }), d.repere || "aucun"), el("div", null, el("b", { text: "Alerte : " }), d.seuil || ""), el("div", { class: "stamp", text: d.definition || "" })),
+        cells,
+        el("td", null, tr ? el("span", { class: "trend " + tr.cls, title: tr.label, text: tr.sym }) : el("span", { class: "stamp", text: "—" }), tr ? el("span", { class: "stamp", text: tr.label }) : null),
+        el("td", null, st),
+        el("td", null, com, d.majLe ? el("span", { class: "stamp", text: "Modifié le " + dateHeureFr(d.majLe) + " par " + nameOf(d.majPar) }) : null)
+      );
+    }));
+  }
+
+  /* ---------- établissements ---------- */
+  function renderEtab() {
+    const t = $("#tEtab"), p = perCourante();
+    t.tHead.replaceChildren(el("tr", null, el("th", { text: "Établissement" }), COLS_ETAB.map(([, l]) => el("th", { text: l })), el("th", { text: "Métiers les plus en tension" }), el("th", { text: "Statut" }), el("th", { text: "" })));
+    const tb = t.tBodies[0], nc = COLS_ETAB.length + 4;
+    if (!S.etab) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: nc, text: "Chargement des établissements…" }))); return; }
+    if (!S.etab.length) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: nc, text: "Aucun établissement. Ajoutez le premier avec le bouton « Ajouter un établissement »." }))); return; }
+    const ro = !S.canWrite;
+    tb.replaceChildren(...S.etab.map((snap) => {
+      const d = snap.data(), id = snap.id, path = "etablissements/" + id;
+      const vals = (d.valeurs && p && d.valeurs[p]) || {};
+      const nom = el("input", { class: "txt", id: "en-" + id, value: d.nom || "", "aria-label": "Nom de l'établissement", disabled: ro || d.consolide,
+        onchange: (e) => { const v = e.target.value.trim(); if (v && v !== d.nom) write(path, { nom: v }, "Nom enregistré"); else e.target.value = d.nom || ""; } });
+      const cells = COLS_ETAB.map(([k, l, u]) => {
+        const v = vals[k];
+        return el("td", { class: "num" }, el("input", { class: "val", id: "ev-" + id + "-" + k, type: "text", inputmode: "decimal", value: fmt(v), "aria-label": l + ", " + (d.nom || ""), disabled: ro || !p,
+          onchange: (e) => { const n = parse(e.target.value); if (Number.isNaN(n)) { e.target.value = fmt(v); toast("Saisissez un nombre, par exemple 12,5"); return; }
+            if (n === (v == null ? null : v)) return; write(path, { valeurs: { [p]: { [k]: n } } }, l + " enregistré"); } }), el("span", { class: "unit", text: u }));
+      });
+      const met = el("input", { class: "txt", id: "em-" + id, value: d.metiers || "", placeholder: ro ? "" : "ex. ES, AES", "aria-label": "Métiers en tension, " + (d.nom || ""), disabled: ro,
+        onchange: (e) => { if (e.target.value !== (d.metiers || "")) write(path, { metiers: e.target.value }, "Métiers enregistrés"); } });
+      const st = el("select", { class: "st", id: "es-" + id, "data-v": d.statut || "", "aria-label": "Statut, " + (d.nom || ""), disabled: ro,
+        onchange: (e) => { e.target.dataset.v = e.target.value; write(path, { statut: e.target.value }, "Statut mis à jour"); } },
+        STATUTS.map(([v, l]) => el("option", { value: v, selected: (d.statut || "") === v, text: l })));
+      const del = (ro || d.consolide) ? el("span") : delControl(path, d.nom);
+      return el("tr", { class: d.statut ? "row-" + d.statut : null }, el("td", { style: d.consolide ? "font-weight:700" : null }, nom), cells, el("td", null, met), el("td", null, st), el("td", null, del));
+    }));
+  }
+  function delControl(path, nom) {
+    const box = el("span", { class: "confirm" });
+    const ask = () => box.replaceChildren(el("span", { text: "Supprimer ?" }),
+      el("button", { class: "btn danger", type: "button", text: "Oui", onclick: () => S.db.doc(path).delete().then(() => toast((nom || "Établissement") + " supprimé"), () => toast("Suppression impossible pour le moment.")) }),
+      el("button", { class: "btn", type: "button", text: "Non", onclick: idle }));
+    const idle = () => box.replaceChildren(el("button", { class: "btn", type: "button", text: "Supprimer", "aria-label": "Supprimer " + (nom || "l'établissement"), onclick: ask }));
+    idle(); return box;
+  }
+
+  /* ---------- actions ---------- */
+  function renderAct() {
+    const t = $("#tAct");
+    t.tHead.replaceChildren(el("tr", null, ["N°", "Action", "Pilote", "Échéance", "Indicateur de résultat", "Avancement", "Commentaire du semestre"].map((h) => el("th", { text: h }))));
+    const tb = t.tBodies[0];
+    if (!S.act) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: 7, text: "Chargement des actions…" }))); return; }
+    if (!S.act.length) { tb.replaceChildren(el("tr", null, el("td", { class: "empty", colspan: 7, text: "Aucune action pour l'instant." }))); return; }
+    const ro = !S.canWrite;
+    tb.replaceChildren(...S.act.map((snap) => {
+      const d = snap.data(), id = snap.id, path = "actions/" + id;
+      const field = (k, w, label) => { const i = el("input", { class: "txt", id: "a" + k + "-" + id, value: d[k] || "", "aria-label": label + ", action " + d.ordre, disabled: ro, style: w ? "min-width:" + w : null,
+        onchange: (e) => { if (e.target.value !== (d[k] || "")) write(path, { [k]: e.target.value }, label + " enregistré"); } }); return i; };
+      const av = el("select", { class: "av", id: "aa-" + id, "data-v": d.avancement || "À lancer", "aria-label": "Avancement, action " + d.ordre, disabled: ro,
+        onchange: (e) => { e.target.dataset.v = e.target.value; write(path, { avancement: e.target.value }, "Avancement mis à jour"); } },
+        AVANC.map((v) => el("option", { value: v, selected: (d.avancement || "À lancer") === v, text: v })));
+      const com = el("textarea", { class: "txt", id: "ac-" + id, rows: 1, "aria-label": "Commentaire, action " + d.ordre, disabled: ro,
+        onchange: (e) => { if (e.target.value !== (d.commentaire || "")) write(path, { commentaire: e.target.value }, "Commentaire enregistré"); } });
+      com.value = d.commentaire || "";
+      return el("tr", null, el("td", { class: "n", text: d.ordre }), el("td", { class: "ind-name", text: d.nom }), el("td", null, field("pilote", "150px", "Pilote")),
+        el("td", null, field("echeance", "70px", "Échéance")), el("td", { class: "meta", text: d.indicateur || "" }), el("td", null, av),
+        el("td", null, com, d.majLe ? el("span", { class: "stamp", text: "Modifié le " + dateHeureFr(d.majLe) + " par " + nameOf(d.majPar) }) : null));
+    }));
+  }
+
+  /* ---------- synthèse ---------- */
+  function bar(target, legend, parts) {
+    const total = parts.reduce((s, p) => s + p.n, 0) || 1;
+    $(target).replaceChildren(...parts.filter((p) => p.n).map((p) => el("span", { style: "width:" + (p.n / total * 100) + "%;background:" + p.c, title: p.l + " : " + p.n })));
+    $(legend).replaceChildren(...parts.map((p) => el("span", null, el("i", { class: "dot", style: "background:" + p.c }), p.l + " ", el("b", { text: p.n }))));
+  }
+  function renderSummary() {
+    const cnt = { vert: 0, orange: 0, rouge: 0, "": 0 };
+    (S.ind || []).forEach((s) => { const v = s.data().statut || ""; cnt[v in cnt ? v : ""]++; });
+    bar("#barInd", "#legInd", [{ l: "Vert", n: cnt.vert, c: "var(--ok)" }, { l: "Orange", n: cnt.orange, c: "var(--warn)" }, { l: "Rouge", n: cnt.rouge, c: "var(--bad)" }, { l: "Non renseigné", n: cnt[""], c: "var(--none)" }]);
+    const ac = { "À lancer": 0, "En cours": 0, "Fait": 0, "Suspendu": 0 };
+    (S.act || []).forEach((s) => { const v = s.data().avancement || "À lancer"; if (v in ac) ac[v]++; });
+    bar("#barAct", "#legAct", [{ l: "Fait", n: ac["Fait"], c: "var(--ok)" }, { l: "En cours", n: ac["En cours"], c: "var(--teal)" }, { l: "Suspendu", n: ac["Suspendu"], c: "var(--warn)" }, { l: "À lancer", n: ac["À lancer"], c: "var(--none)" }]);
+    const p = perCourante();
+    $("#perCur").textContent = p || "—";
+    if (S.ind) {
+      const filled = S.ind.filter((s) => { const v = s.data().valeurs; return v && typeof v[p] === "number"; }).length;
+      $("#perFill").textContent = S.ind.length ? filled + " indicateur" + (filled > 1 ? "s" : "") + " sur " + S.ind.length + " renseigné" + (filled > 1 ? "s" : "") + " pour cette période" : "Aucun indicateur";
+    }
+    const all = [...(S.ind || []), ...(S.etab || []), ...(S.act || [])].map((s) => s.data()).filter((d) => d.majLe).sort((a, b) => a.majLe < b.majLe ? 1 : -1);
+    if (all.length) { $("#lastUp").textContent = dateFr(all[0].majLe); $("#lastWho").textContent = "par " + nameOf(all[0].majPar); }
+    else if (S.ind) { $("#lastUp").textContent = "Aucune saisie"; $("#lastWho").textContent = "Les valeurs sont à renseigner par la direction des ressources humaines."; }
+  }
+
+  async function renderAll() {
+    const ids = [...(S.ind || []), ...(S.etab || []), ...(S.act || [])].map((s) => s.data().majPar);
+    await names(ids);
+    safeRender("p-indicateurs", renderInd); safeRender("p-etablissements", renderEtab); safeRender("p-actions", renderAct);
+    renderSummary();
+    $("#addPer").disabled = !S.canWrite || !S.cfg; $("#addEtab").disabled = !S.canWrite || !S.db;
+  }
+
+  /* ---------- boutons ---------- */
+  $("#addPer").addEventListener("click", () => {
+    const ps = periodes(); if (!ps.length) return;
+    const last = ps[ps.length - 1]; const m = /^S([12]) (\d{4})$/.exec(last) || /^T0 (\d{4})$/.exec(last);
+    let next;
+    if (/^T0/.test(last)) next = "S1 " + (Number(m[1]) + 1);
+    else if (m) next = m[1] === "1" ? "S2 " + m[2] : "S1 " + (Number(m[2]) + 1);
+    else next = "Période " + (ps.length + 1);
+    write("config/general", { periodes: [...ps, next], courante: next }, "Période " + next + " ajoutée");
+  });
+  $("#addEtab").addEventListener("click", () => {
+    if (!S.db || !S.canWrite) return;
+    const n = (S.etab || []).filter((s) => !s.data().consolide).length + 1;
+    S.db.collection("etablissements").add({ ordre: n, nom: "Établissement " + n, consolide: false, valeurs: {}, metiers: "", statut: "", majPar: S.myId, majLe: new Date().toISOString() })
+      .then(() => toast("Établissement ajouté"), () => toast("Ajout impossible pour le moment."));
+  });
+  function csv(rows) { return rows.map((r) => r.map((c) => { c = c == null ? "" : String(c); return /[;"\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(";")).join("\n"); }
+  function copy(text, what) {
+    const done = () => toast(what + " copié : collez-le dans un tableur");
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+    function fallback() { const ta = el("textarea", { style: "position:fixed;opacity:0" }); ta.value = text; document.body.append(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { toast("Copie impossible : sélectionnez le tableau à la main."); } ta.remove(); }
+  }
+  $("#csvInd").addEventListener("click", () => { const ps = periodes(); copy(csv([["N°", "Indicateur", "Repère", "Seuil d'alerte", ...ps, "Statut", "Commentaire"], ...(S.ind || []).map((s) => { const d = s.data(); return [d.ordre, d.nom, d.repere, d.seuil, ...ps.map((p) => fmt(d.valeurs && d.valeurs[p])), d.statut, d.commentaire]; })]), "Tableau des indicateurs"); });
+  $("#csvEtab").addEventListener("click", () => { const p = perCourante(); copy(csv([["Établissement", ...COLS_ETAB.map((c) => c[1]), "Métiers en tension", "Statut"], ...(S.etab || []).map((s) => { const d = s.data(), v = (d.valeurs && d.valeurs[p]) || {}; return [d.nom, ...COLS_ETAB.map((c) => fmt(v[c[0]])), d.metiers, d.statut]; })]), "Vue par établissement"); });
+  $("#csvAct").addEventListener("click", () => { copy(csv([["N°", "Action", "Pilote", "Échéance", "Indicateur", "Avancement", "Commentaire"], ...(S.act || []).map((s) => { const d = s.data(); return [d.ordre, d.nom, d.pilote, d.echeance, d.indicateur, d.avancement, d.commentaire]; })]), "Suivi des actions"); });
+
+  /* onglets */
+  const TABS = ["indicateurs", "etablissements", "actions"];
+  function show(name) {
+    if (!TABS.includes(name)) name = "indicateurs";
+    TABS.forEach((t) => { $("#tab-" + t).setAttribute("aria-selected", String(t === name)); $("#p-" + t).hidden = t !== name; });
+  }
+  TABS.forEach((t) => $("#tab-" + t).addEventListener("click", () => { show(t); try { history.replaceState(null, "", "#" + t); } catch (e) { location.hash = t; } }));
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+
+  /* ---------- démarrage ---------- */
+  function subscribe(db, local) {
+    let timer = local ? null : setTimeout(() => notice("Les données mettent du temps à arriver : la connexion semble lente. Elles s'afficheront dès qu'elles seront disponibles."), 10000);
+    const settle = () => { clearTimeout(timer); };
+    const onErr = (what) => () => { settle(); notice("Les " + what + " ne peuvent plus être mis à jour en direct. Rechargez la page plus tard."); };
+    db.collection("indicateurs").orderBy("ordre").onSnapshot((s) => { if (!s.metadata.fromCache) { settle(); if (!local) notice(S.canWrite ? "" : "Vous consultez le tableau de bord en lecture seule."); } S.ind = s.docs; renderAll(); }, onErr("indicateurs"));
+    db.collection("etablissements").orderBy("ordre").onSnapshot((s) => { S.etab = s.docs; renderAll(); }, onErr("établissements"));
+    db.collection("actions").orderBy("ordre").onSnapshot((s) => { S.act = s.docs; renderAll(); }, onErr("actions"));
+    db.doc("config/general").onSnapshot((s) => { S.cfg = s.exists ? s.data() : null; renderAll(); }, onErr("réglages"));
+  }
+
+  /* Mode autonome (hors claude.ai, par exemple sur GitHub Pages) : l'exemple est chargé
+     depuis la page et les saisies restent dans ce navigateur (localStorage). */
+  function localDb() {
+    const KEY = "cap-solidaire-tableau-de-bord-v1";
+    const clone = (o) => JSON.parse(JSON.stringify(o));
+    let seed = {}; try { seed = JSON.parse(document.getElementById("seed").textContent); } catch (e) {}
+    let store = null; try { store = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (!store || typeof store !== "object") store = clone(seed);
+    const subs = [];
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} subs.forEach((f) => f()); };
+    const snap = (id, d) => ({ id, exists: !!d, data: () => d, metadata: { fromCache: false, hasPendingWrites: false } });
+    const merge = (a, b) => { for (const k of Object.keys(b)) { const v = b[k]; if (v && typeof v === "object" && !Array.isArray(v) && a[k] && typeof a[k] === "object" && !Array.isArray(a[k])) merge(a[k], v); else a[k] = v; } return a; };
+    const watch = (f) => { subs.push(f); setTimeout(f, 0); return () => { const i = subs.indexOf(f); if (i >= 0) subs.splice(i, 1); }; };
+    const doc = (path) => { const [c, id] = path.split("/"); return {
+      update: async (d) => { if (!store[c] || !store[c][id]) throw { code: "invalid_argument" }; merge(store[c][id], clone(d)); save(); },
+      delete: async () => { if (store[c]) delete store[c][id]; save(); },
+      onSnapshot: (next) => watch(() => next(snap(id, store[c] && store[c][id] ? clone(store[c][id]) : undefined))) }; };
+    const collection = (c) => ({
+      orderBy: (field) => ({ onSnapshot: (next) => watch(() => { const docs = Object.entries(store[c] || {}).map(([id, d]) => snap(id, clone(d))).sort((a, b) => (a.data()[field] ?? 1e9) - (b.data()[field] ?? 1e9)); next({ docs, size: docs.length, empty: !docs.length, metadata: { fromCache: false, hasPendingWrites: false } }); }) }),
+      add: async (d) => { store[c] = store[c] || {}; const id = "x" + Date.now().toString(36); store[c][id] = clone(d); save(); return doc(c + "/" + id); } });
+    return { doc, collection, reset: () => { store = clone(seed); save(); } };
+  }
+  function startLocal() {
+    const db = localDb(); S.db = db; S.canWrite = true;
+    const n = $("#notice"); n.hidden = false;
+    const msg = el("span", { text: "Version autonome : vos saisies sont enregistrées dans ce navigateur uniquement, personne d'autre ne les voit. Pour un tableau partagé en direct, utilisez la version sur claude.ai. " });
+    const box = el("span", { class: "confirm" });
+    const idle = () => box.replaceChildren(el("button", { class: "btn", type: "button", text: "Revenir à l'exemple vide", onclick: ask }));
+    const ask = () => box.replaceChildren(el("span", { text: "Effacer toutes vos saisies ?" }),
+      el("button", { class: "btn danger", type: "button", text: "Oui, effacer", onclick: () => { db.reset(); idle(); toast("Exemple remis à zéro"); } }),
+      el("button", { class: "btn", type: "button", text: "Non", onclick: idle }));
+    idle(); n.replaceChildren(msg, box);
+    subscribe(db, true);
+  }
+
+  renderAll();
+  (async () => {
+    const claude = window.claude;
+    if (!claude || !claude.use) { startLocal(); return; }
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    S.user = user;
+    if (!db) { notice("Les données partagées ne sont pas accessibles dans cette vue. Connectez-vous à claude.ai pour consulter et modifier le tableau de bord."); S.canWrite = false; S.ind = []; S.etab = []; S.act = []; renderAll(); return; }
+    S.db = db;
+    if (user) {
+      const me = await user.me(); S.myId = me.id;
+      const can = await user.can("data.write"); if (can === false) S.canWrite = false;
+      const w = $("#who"); w.replaceChildren(el("img", { src: me.avatarUrl, alt: "" }), el("span", { text: me.name || "Vous" }), S.canWrite ? null : el("span", { class: "pill-ro", text: "Lecture seule" }));
+    }
+    subscribe(db, false);
+  })();
+})();
+</script>
+
+</body>
+</html>
